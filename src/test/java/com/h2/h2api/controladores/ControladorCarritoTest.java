@@ -1,98 +1,70 @@
 package com.h2.h2api.controladores;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-class ControladorCarritoTest {
-
-    @Test
-    void obtenerTodosLosCarritos() {
-    }
-
-    @Test
-    void obtenerCarritoPorUsuario() {
-    }
-}
-
-/*
-package com.h2.h2api.controladores;
-
 import com.h2.h2api.modelos.Carrito;
 import com.h2.h2api.modelos.Usuario;
 import com.h2.h2api.servicios.ServicioCarrito;
+import com.h2.h2api.servicios.ServicioUsuario;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class ControladorCarritoTest {
+@AutoConfigureMockMvc
+class ControladorCarritoTest {
+
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private ServicioCarrito servicioCarrito;
 
-    @InjectMocks
-    private ControladorCarrito controladorCarrito;
+    @MockBean
+    private ServicioUsuario servicioUsuario;
 
     @Test
-    public void testObtenerTodosLosCarritos() throws Exception {
-        // Configurar datos de prueba
-        Carrito carrito = new Carrito();
-        carrito.setId(1L);
-        List<Carrito> carritos = Collections.singletonList(carrito);
-
-        // Mock del servicio
-        when(servicioCarrito.obtenerTodosLosCarritos()).thenReturn(carritos);
-
-        // Realizar la solicitud HTTP y verificar la respuesta
-        mockMvc.perform(MockMvcRequestBuilders.get("/carritos/todoscarritos")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(1));
-    }
-
-    @Test
-    public void testObtenerCarritoPorUsuario() throws Exception {
-        // Configurar datos de prueba
-        Long usuarioId = 1L;
-
-        // Crear un objeto Usuario
+    public void obtenerCarritoDeUsuarioExistente() throws Exception {
+        // Simulamos un usuario y un carrito
         Usuario usuario = new Usuario();
-        usuario.setId(usuarioId);
+        usuario.setId(1L);
+        usuario.setNombre("Usuario de Prueba");
 
-        // Crear un objeto Carrito
         Carrito carrito = new Carrito();
         carrito.setId(1L);
+        carrito.setCodigo("COD123");
+        carrito.setTotal(100.0);
+        carrito.setFechaCompra(LocalDateTime.now());
+        carrito.setUsuario(usuario);
 
-        // Mock del servicio
+        // Cuando se llame a servicioUsuario.obtenerUsuario, devolverá el usuario simulado
+        when(servicioUsuario.obtenerUsuario(1L)).thenReturn(usuario);
+
+        // Cuando se llame a servicioCarrito.obtenerCarritoPorUsuario, devolverá el carrito simulado
         when(servicioCarrito.obtenerCarritoPorUsuario(usuario)).thenReturn(carrito);
 
-        // Realizar la solicitud HTTP y verificar la respuesta
-        mockMvc.perform(MockMvcRequestBuilders.get("/carritos/usuario/{idUsuario}", usuarioId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        // Realizamos una solicitud GET para obtener el carrito del usuario
+        mockMvc.perform(MockMvcRequestBuilders.get("/carritos/usuario/1"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.codigo").value("COD123"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.total").value(100.0));
     }
 
-}
+    @Test
+    public void obtenerCarritoDeUsuarioNoExistente() throws Exception {
+        // Simulamos un usuario que no existe
+        when(servicioUsuario.obtenerUsuario(2L)).thenReturn(null);
 
- */
+        // Realizamos una solicitud GET para obtener el carrito de un usuario que no existe
+        mockMvc.perform(MockMvcRequestBuilders.get("/carritos/usuario/2"))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+}

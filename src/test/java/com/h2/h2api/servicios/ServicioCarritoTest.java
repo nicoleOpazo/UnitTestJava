@@ -4,7 +4,6 @@ import com.h2.h2api.modelos.Carrito;
 import com.h2.h2api.repositorios.RepositorioCarrito;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -19,12 +18,12 @@ public class ServicioCarritoTest {
     @Mock
     private RepositorioCarrito repositorioCarrito;
 
-    @InjectMocks
-    private ServicioCarrito servicioCarrito = new ServicioCarritoImpl(repositorioCarrito);
+    private ServicioCarrito servicioCarrito;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        servicioCarrito = new ServicioCarritoImpl(repositorioCarrito);
     }
 
     @Test
